@@ -5,6 +5,7 @@
   #:use-module (guix build-system gnu)
   #:use-module (gnu packages shells)
   #:use-module (gnu packages algebra)
+  #:use-module (gnu packages perl)
   #:use-module (gnu packages base)
   #:use-module (gnu packages documentation)
   #:use-module (gnu packages groff)
@@ -33,10 +34,7 @@
               (snippet '(begin
                           ;; Don't try to install /etc/fish/config.fish
                           (substitute* "Makefile.in"
-                            ((".*INSTALL.*sysconfdir.*fish.*") "")) 
-                          ;; Get rid of /usr/bin/env in the build scripts
-                          (substitute* "build_tools/build_commands_hdr.sh"
-                            (("/usr/bin/env ") ""))
+                            ((".*INSTALL.*sysconfdir.*fish.*") ""))
                           #t))))
     (build-system gnu-build-system)
     (native-inputs
@@ -44,6 +42,7 @@
        ("coreutils" ,coreutils))) ; for env
     (inputs
      `(("bc" ,bc)
+       ("perl" ,perl)
        ("ncurses" ,ncurses)
        ("groff" ,groff)               ;for 'fish --help'
        ("pcre2" ,pcre2)               ;don't use the bundled PCRE2
@@ -64,6 +63,9 @@
                (("python") (which "python")))
              (substitute* "share/functions/__fish_print_help.fish"
                (("nroff") (which "nroff")))
+             ;; Get rid of /usr/bin/env in the build scripts
+             (substitute* "build_tools/build_commands_hdr.sh"
+               (("/usr/bin/env awk") (which "awk")))
              #t)))))
     (synopsis "The friendly interactive shell")
     (description
