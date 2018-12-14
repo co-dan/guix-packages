@@ -1,4 +1,4 @@
-(define-module (fish-shell)
+(define-module (fish)
   #:use-module (guix licenses)
   #:use-module (guix packages)
   #:use-module (guix download)
