@@ -14,13 +14,13 @@
     (synopsis "An alternative Coq standard library coq-std++")
     (version "1.1.0")
     (source (origin
-             (method url-fetch)
-             (uri (string-append
-                   "https://gitlab.mpi-sws.org/robbertkrebbers/coq-stdpp/repository/coq-stdpp-"
-                   version "/archive.tar.gz"))
-             (file-name (string-append name "-" version ".tar.gz"))
-             (sha256
-              (base32 "1lhyalr20amz8inr4ca6p70lhfal0gmxwsvnh1xd04mcvsgxhj8s"))))
+              (method url-fetch)
+              (uri (string-append
+                    "https://gitlab.mpi-sws.org/robbertkrebbers/coq-stdpp/repository/coq-stdpp-"
+                    version "/archive.tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32 "1lhyalr20amz8inr4ca6p70lhfal0gmxwsvnh1xd04mcvsgxhj8s"))))
     (build-system gnu-build-system)
     (native-inputs
      `(;; need for egrep for tests
