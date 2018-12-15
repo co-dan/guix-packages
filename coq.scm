@@ -1,4 +1,4 @@
-(define-module (iris)
+(define-module (coq)
   #:use-module (guix licenses)
   #:use-module (guix packages)
   #:use-module (guix build-system gnu)
