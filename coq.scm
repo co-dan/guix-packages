@@ -1,50 +1,19 @@
 (define-module (coq)
   #:use-module (guix licenses)
   #:use-module (guix packages)
+  #:use-module (guix build utils)
   #:use-module (guix build-system gnu)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (gnu packages base)
   #:use-module (gnu packages gawk)
   #:use-module (gnu packages ocaml))
 
-(define-public coq-stdpp
-  (package
-    (name "coq-stdpp")
-    (synopsis "An alternative Coq standard library coq-std++")
-    (version "1.1.0")
-    (source (origin
-              (method url-fetch)
-              (uri (string-append
-                    "https://gitlab.mpi-sws.org/robbertkrebbers/coq-stdpp/repository/coq-stdpp-"
-                    version "/archive.tar.gz"))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32 "1lhyalr20amz8inr4ca6p70lhfal0gmxwsvnh1xd04mcvsgxhj8s"))))
-    (build-system gnu-build-system)
-    (native-inputs
-     `(;; need for egrep for tests
-       ("grep" ,grep)
-       ("gawk" ,gawk)
-       ;; need diff for tests
-       ("diffutils" ,diffutils)))
-    (inputs
-     `(("coq" ,coq)))
-    (arguments
-     `(#:tests? #f
-       #:phases
-       (modify-phases %standard-phases
-         (delete 'configure)
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (setenv "COQLIB" (string-append (assoc-ref outputs "out") "/lib/coq/"))
-             (zero? (system* "make"
-                             (string-append "COQLIB=" (assoc-ref outputs "out")
-                                            "/lib/coq/")
-                             "install")))))))
-    (description "This project contains an extended \"Standard Library\" for Coq called coq-std++.")
-    (home-page "https://gitlab.mpi-sws.org/iris/stdpp")
-    (license bsd-3)))
+;; I want to install some of the libraries directly from the source code
+;; For that I use the .git versions of the packages
+(define coq-stdpp-dev-dir "/home/dan/iris/coq-stdpp")
+(define coq-iris-dev-dir "/home/dan/iris/iris-coq")
 
 (define-public coq-autosubst
   (let ((branch "coq86-devel")
@@ -80,4 +49,114 @@
       (description "Formalizing syntactic theories with variable binders is not easy. We present Autosubst, a library for the Coq proof assistant to automate this process. Given an inductive definition of syntactic objects in de Bruijn representation augmented with binding annotations, Autosubst synthesizes the parallel substitution operation and automatically proves the basic lemmas about substitutions. Our core contribution is an automation tactic that solves equations involving terms and substitutions. This makes the usage of substitution lemmas unnecessary. The tactic is based on our current work on a decision procedure for the equational theory of an extension of the sigma-calculus by Abadi et. al. The library is completely written in Coq and uses Ltac to synthesize the substitution operation.")
       (home-page "https://www.ps.uni-saarland.de/autosubst/")
       (license bsd-3))))
+
+(define-public coq-stdpp
+  (package
+    (name "coq-stdpp")
+    (synopsis "An alternative Coq standard library coq-std++")
+    (version "1.1.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://gitlab.mpi-sws.org/robbertkrebbers/coq-stdpp/repository/coq-stdpp-"
+                    version "/archive.tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32 "1lhyalr20amz8inr4ca6p70lhfal0gmxwsvnh1xd04mcvsgxhj8s"))))
+    (build-system gnu-build-system)
+    (native-inputs
+     `(;; need for egrep for tests
+       ("grep" ,grep)
+       ("gawk" ,gawk)
+       ;; need diff for tests
+       ("diffutils" ,diffutils)))
+    (inputs
+     `(("coq" ,coq)
+       ("camlp5" ,camlp5)))
+    (arguments
+     `(#:tests? #f
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure)
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (setenv "COQLIB" (string-append (assoc-ref outputs "out") "/lib/coq/"))
+             (zero? (system* "make"
+                             (string-append "COQLIB=" (assoc-ref outputs "out")
+                                            "/lib/coq/")
+                             "install")))))))
+    (description "This project contains an extended \"Standard Library\" for Coq called coq-std++.")
+    (home-page "https://gitlab.mpi-sws.org/iris/stdpp")
+    (license bsd-3)))
+
+(define-public coq-iris
+  (package
+    (name "coq-iris")
+    (synopsis "Higher-Order Concurrent Separation Logic Framework implemented and verified in the proof assistant Coq")
+    (version "3.1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://gitlab.mpi-sws.org/FP/coq-iris/repository/coq-iris-"
+                    version "/archive.tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32 ""))))
+    (build-system gnu-build-system)
+    (native-inputs
+     `(;; need for egrep for tests
+       ("grep" ,grep)
+       ("gawk" ,gawk)
+       ;; need diff for tests
+       ("diffutils" ,diffutils)
+       ("coq" ,coq)
+       ("coq-stdpp" ,coq-stdpp)
+       ("camlp5" ,camlp5)))
+    (arguments
+     `(#:tests? #f
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure)
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (setenv "COQLIB" (string-append (assoc-ref outputs "out") "/lib/coq/"))
+             (zero? (system* "make"
+                             (string-append "COQLIB=" (assoc-ref outputs "out")
+                                            "/lib/coq/")
+                             "install")))))))
+    (description "Iris Coq formalization")
+    (home-page "https://gitlab.mpi-sws.org/FP/iris-coq")
+    (license bsd-3)))
+
+
+(define-public coq-stdpp.git
+  (package
+    (inherit coq-stdpp)
+    (name "coq-stdpp.git")
+    (synopsis "An alternative Coq standard library coq-std++ (local files)")
+    (version "dev")
+    (source (local-file coq-stdpp-dev-dir
+                        #:recursive? #t
+                        #:select? ;; (git-file? coq-stdpp-dev-dir)
+                        (git-predicate coq-stdpp-dev-dir)
+                        ))))
+
+(define-public coq-iris.git
+  (package
+    (inherit coq-iris)
+    (name "coq-iris.git")
+    (synopsis "Iris Coq formalzation (local files)")
+    (version "dev")
+    (native-inputs
+     `(;; need for egrep for tests
+       ("grep" ,grep)
+       ("gawk" ,gawk)
+       ;; need diff for tests
+       ("diffutils" ,diffutils)
+       ("coq" ,coq)
+       ("coq-stdpp.git" ,coq-stdpp.git)
+       ("camlp5" ,camlp5)))
+    (source (local-file coq-iris-dev-dir
+                        #:recursive? #t
+                        #:select? (git-predicate coq-iris-dev-dir)))))
 
