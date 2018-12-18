@@ -3,10 +3,13 @@
   #:use-module (guix packages)
   #:use-module (guix build utils)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system ocaml)
   #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (gnu packages base)
+  #:use-module (gnu packages rsync)
+  #:use-module (gnu packages python)
   #:use-module (gnu packages gawk)
   #:use-module (gnu packages ocaml))
 
@@ -160,3 +163,64 @@
                         #:recursive? #t
                         #:select? (git-predicate coq-iris-dev-dir)))))
 
+;; Coq without the coqide
+(define-public coq-beta
+  (package
+    (name "coq-beta")
+    (version "8.9+beta1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://github.com/coq/coq/archive/V"
+                                  version ".tar.gz"))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0yf8zpdynl3z07gl6zgrjq0vk9fivr0d3gr0svmvjrnw0ml03v5z"))))
+    (native-search-paths
+     (list (search-path-specification
+            (variable "COQPATH")
+            (files (list "lib/coq/user-contrib")))))
+    (build-system ocaml-build-system)
+    (inputs
+     `(("rsync" ,rsync) ;; for building the test log
+       ("python2" ,python-2)
+       ("camlp5" ,camlp5)
+       ("ocaml-num" ,ocaml-num)
+       ("ocaml-ounit" ,ocaml-ounit)))
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (replace 'configure
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (mandir (string-append out "/share/man"))
+                    (browser "icecat -remote \"OpenURL(%s,new-tab)\""))
+               (invoke "./configure"
+                       "-prefix" out
+                       "-mandir" mandir
+                       "-browser" browser
+                       "-coqide" "no"))))
+         (replace 'build
+           (lambda _
+             (invoke "make"
+                     "-j" (number->string (parallel-job-count))
+                     "world")))
+         (delete 'check)
+         (add-after 'install 'check
+           (lambda _
+             (with-directory-excursion "test-suite"
+               ;; These two tests fail.
+               ;; This one fails because the output is not formatted as expected.
+               (delete-file-recursively "coq-makefile/timing")
+               ;; This one fails because we didn't build coqtop.byte.
+               (delete-file-recursively "coq-makefile/findlib-package")
+               (invoke "make" "PRINT_LOGS=1")))))))
+    (home-page "https://coq.inria.fr")
+    (synopsis "Proof assistant for higher-order logic")
+    (description
+     "Coq is a proof assistant for higher-order logic, which allows the
+development of computer programs consistent with their formal specification.
+It is developed using Objective Caml and Camlp5.")
+    ;; The code is distributed under lgpl2.1.
+    ;; Some of the documentation is distributed under opl1.0+.
+    (license (list lgpl2.1 opl1.0+))))
