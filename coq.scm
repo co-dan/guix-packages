@@ -11,7 +11,8 @@
   #:use-module (gnu packages rsync)
   #:use-module (gnu packages python)
   #:use-module (gnu packages gawk)
-  #:use-module (gnu packages ocaml))
+  #:use-module (gnu packages ocaml)
+  #:use-module (gnu packages coq))
 
 ;; I want to install some of the libraries directly from the source code
 ;; For that I use the .git versions of the packages
