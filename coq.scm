@@ -18,6 +18,7 @@
 ;; For that I use the .git versions of the packages
 (define coq-stdpp-dev-dir "/home/dan/iris/coq-stdpp")
 (define coq-iris-dev-dir "/home/dan/iris/iris-coq")
+(define coq-iris-examples-dev-dir "/home/dan/iris/iris-examples")
 
 (define-public coq-autosubst
   (let ((branch "coq86-devel")
@@ -163,6 +164,26 @@
     (source (local-file coq-iris-dev-dir
                         #:recursive? #t
                         #:select? (git-predicate coq-iris-dev-dir)))))
+
+(define-public coq-iris-examples.git
+  (package
+    (inherit coq-iris)
+    (name "coq-iris-examples.git")
+    (synopsis "Iris Coq Examples (local files)")
+    (version "dev")
+    (native-inputs
+     `(;; need for egrep for tests
+       ("grep" ,grep)
+       ("gawk" ,gawk)
+       ;; need diff for tests
+       ("diffutils" ,diffutils)
+       ("coq" ,coq)
+       ("coq-stdpp.git" ,coq-stdpp.git)
+       ("coq-iris.git" ,coq-iris.git)
+       ("camlp5" ,camlp5)))
+    (source (local-file coq-iris-examples-dev-dir
+                        #:recursive? #t
+                        #:select? (git-predicate coq-iris-examples-dev-dir)))))
 
 ;; Coq without the coqide
 (define-public coq-beta
