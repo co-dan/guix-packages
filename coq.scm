@@ -179,6 +179,7 @@
        ("diffutils" ,diffutils)
        ("coq" ,coq)
        ("coq-stdpp.git" ,coq-stdpp.git)
+       ("coq-autosubst",coq-autosubst)
        ("coq-iris.git" ,coq-iris.git)
        ("camlp5" ,camlp5)))
     (source (local-file coq-iris-examples-dev-dir
