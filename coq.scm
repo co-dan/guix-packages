@@ -55,6 +55,47 @@
       (home-page "https://www.ps.uni-saarland.de/autosubst/")
       (license bsd-3))))
 
+(define-public coq-equations
+ (package
+   (name "coq-equations")
+   (synopsis "Equations - a function definition plugin")
+   (version "1.2-beta")
+   (source (origin
+            (method url-fetch)
+            (uri (string-append
+                    "https://github.com/mattam82/Coq-Equations/archive/v"
+                    version "-8.8.tar.gz"))
+            (file-name (string-append name "-v" version "8.8.tar.gz"))
+            (sha256
+             (base32 "1j7yarhddk2c2l4b6h8g5n0xz5vfy1bqmgh832g01di5gjwshy3f"))))
+   (build-system gnu-build-system)
+   (native-inputs
+    `(("findlib" ,ocaml)))
+   (inputs
+    `(("coq" ,coq)
+      ("camlp5" ,camlp5)))
+   (arguments
+    `(#:tests? #f
+      #:phases
+      (modify-phases %standard-phases
+        (replace 'configure
+            (lambda* (#:key outputs #:allow-other-keys)
+                     (system "coq_makefile -f _CoqProject -o Makefile")))
+        (replace 'install
+            (lambda* (#:key outputs #:allow-other-keys)
+                     (setenv "COQLIB" (string-append (assoc-ref outputs "out") "/lib/coq/"))
+                     (zero? (system* "make"
+                                     (string-append "COQLIB=" (assoc-ref outputs "out")
+                                                    "/lib/coq/")
+                                     "install")))))))
+   (description "Equations provides a notation for writing programs
+by dependent pattern-matching and (well-founded) recursion in Coq. It
+compiles everything down to eliminators for inductive types, equality
+and accessibility, providing a definitional extension to the Coq
+kernel.")
+   (home-page "https://mattam82.github.io/Coq-Equations/")
+   (license gpl2)))
+
 (define-public coq-stdpp
   (package
     (name "coq-stdpp")
