@@ -20,41 +20,6 @@
 (define coq-iris-dev-dir "/home/dan/iris/iris-coq")
 (define coq-iris-examples-dev-dir "/home/dan/iris/iris-examples")
 
-(define-public coq-autosubst
-  (let ((branch "coq86-devel")
-        (commit "d0d73557979796b3d4be7aac72135581c33f26f7"))
-    (package
-      (name "coq-autosubst")
-      (synopsis "A Coq library for parallel de Bruijn substitutions")
-      (version (git-version "1" branch commit))
-      (source (origin
-                (method git-fetch)
-                (uri (git-reference
-                      (url "git://github.com/uds-psl/autosubst.git")
-                      ;; (branch branch)
-                      (commit commit)))
-                (file-name (git-file-name name version))
-                (sha256
-                 (base32 "1852xb5cwkjw3dlc0lp2sakwa40bjzw37qmwz4bn3vqazg1hnh6r"))))
-      (build-system gnu-build-system)
-      (native-inputs
-       `(("coq" ,coq)))
-      (arguments
-       `(#:tests? #f
-         #:phases
-         (modify-phases %standard-phases
-           (delete 'configure)
-           (replace 'install
-             (lambda* (#:key outputs #:allow-other-keys)
-               (setenv "COQLIB" (string-append (assoc-ref outputs "out") "/lib/coq/"))
-               (zero? (system* "make"
-                               (string-append "COQLIB=" (assoc-ref outputs "out")
-                                              "/lib/coq/")
-                               "install")))))))
-      (description "Formalizing syntactic theories with variable binders is not easy. We present Autosubst, a library for the Coq proof assistant to automate this process. Given an inductive definition of syntactic objects in de Bruijn representation augmented with binding annotations, Autosubst synthesizes the parallel substitution operation and automatically proves the basic lemmas about substitutions. Our core contribution is an automation tactic that solves equations involving terms and substitutions. This makes the usage of substitution lemmas unnecessary. The tactic is based on our current work on a decision procedure for the equational theory of an extension of the sigma-calculus by Abadi et. al. The library is completely written in Coq and uses Ltac to synthesize the substitution operation.")
-      (home-page "https://www.ps.uni-saarland.de/autosubst/")
-      (license bsd-3))))
-
 (define-public coq-equations
  (package
    (name "coq-equations")
