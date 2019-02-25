@@ -11,6 +11,7 @@
   #:use-module (gnu packages rsync)
   #:use-module (gnu packages python)
   #:use-module (gnu packages gawk)
+  #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages ocaml)
   #:use-module (gnu packages coq))
 
@@ -20,47 +21,6 @@
 (define coq-iris-dev-dir "/home/dan/iris/iris-coq")
 (define coq-iris-examples-dev-dir "/home/dan/iris/iris-examples")
 
-(define-public coq-equations
- (package
-   (name "coq-equations")
-   (synopsis "Equations - a function definition plugin")
-   (version "1.2-beta")
-   (source (origin
-            (method url-fetch)
-            (uri (string-append
-                    "https://github.com/mattam82/Coq-Equations/archive/v"
-                    version "-8.8.tar.gz"))
-            (file-name (string-append name "-v" version "8.8.tar.gz"))
-            (sha256
-             (base32 "1j7yarhddk2c2l4b6h8g5n0xz5vfy1bqmgh832g01di5gjwshy3f"))))
-   (build-system gnu-build-system)
-   (native-inputs
-    `(("findlib" ,ocaml)))
-   (inputs
-    `(("coq" ,coq)
-      ("camlp5" ,camlp5)))
-   (arguments
-    `(#:tests? #f
-      #:phases
-      (modify-phases %standard-phases
-        (replace 'configure
-            (lambda* (#:key outputs #:allow-other-keys)
-                     (system "coq_makefile -f _CoqProject -o Makefile")))
-        (replace 'install
-            (lambda* (#:key outputs #:allow-other-keys)
-                     (setenv "COQLIB" (string-append (assoc-ref outputs "out") "/lib/coq/"))
-                     (zero? (system* "make"
-                                     (string-append "COQLIB=" (assoc-ref outputs "out")
-                                                    "/lib/coq/")
-                                     "install")))))))
-   (description "Equations provides a notation for writing programs
-by dependent pattern-matching and (well-founded) recursion in Coq. It
-compiles everything down to eliminators for inductive types, equality
-and accessibility, providing a definitional extension to the Coq
-kernel.")
-   (home-page "https://mattam82.github.io/Coq-Equations/")
-   (license gpl2)))
-
 (define-public coq-stdpp
   (package
     (name "coq-stdpp")
@@ -69,7 +29,7 @@ kernel.")
     (source (origin
               (method url-fetch)
               (uri (string-append
-                    "https://gitlab.mpi-sws.org/robbertkrebbers/coq-stdpp/repository/coq-stdpp-"
+                    "https://gitlab.mpi-sws.org/iris/stdpp/repository/stdpp-"
                     version "/archive.tar.gz"))
               (file-name (string-append name "-" version ".tar.gz"))
               (sha256
@@ -253,3 +213,46 @@ It is developed using Objective Caml and Camlp5.")
     ;; The code is distributed under lgpl2.1.
     ;; Some of the documentation is distributed under opl1.0+.
     (license (list lgpl2.1 opl1.0+))))
+
+;; for coq shell
+;; python-sphinx python-sphinx-rtd-theme
+
+(define-public coq-equations
+  (package
+    (name "coq-equations")
+    (version "1.1")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/mattam82/Coq-Equations.git")
+                    (commit (string-append "v" version "-8.8"))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32 "129rxsdsf88vjcw0xhm74yax1hmnk6f8n9ksg0hcyyjq1ijddiwa"))))
+    (build-system gnu-build-system)
+    (native-inputs
+     `(("ocaml"  ,ocaml)
+       ("coq"    ,coq)
+       ("camlp5" ,camlp5)))
+    (arguments
+     `(#:test-target "test-suite"
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'configure
+           (lambda* (#:key outputs #:allow-other-keys)
+             (invoke "coq_makefile" "-f" "_CoqProject" "-o" "Makefile")))
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (setenv "COQLIB" (string-append (assoc-ref outputs "out") "/lib/coq/"))
+             (invoke "make"
+                     (string-append "COQLIB=" (assoc-ref outputs "out")
+                                    "/lib/coq/")
+                     "install"))))))
+    (home-page "https://mattam82.github.io/Coq-Equations/")
+    (synopsis "Function definition plugin for Coq")
+    (description "Equations provides a notation for writing programs
+by dependent pattern-matching and (well-founded) recursion in Coq.  It
+compiles everything down to eliminators for inductive types, equality
+and accessibility, providing a definitional extension to the Coq
+kernel.")
+    (license license:lgpl2.1)))
