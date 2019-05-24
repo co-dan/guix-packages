@@ -20,6 +20,7 @@
 (define coq-stdpp-dev-dir "/home/dan/iris/coq-stdpp")
 (define coq-iris-dev-dir "/home/dan/iris/iris-coq")
 (define coq-iris-examples-dev-dir "/home/dan/iris/iris-examples")
+(define coq-iris-c-monad-dev-dir "/home/dan/iris/c-monad")
 
 (define-public coq-stdpp
   (package
@@ -151,6 +152,93 @@
     (source (local-file coq-iris-examples-dev-dir
                         #:recursive? #t
                         #:select? (git-predicate coq-iris-examples-dev-dir)))))
+
+(define-public coq-iris-c-monad.git
+  (package
+    (inherit coq-iris)
+    (name "coq-iris-c-monad.git")
+    (synopsis "Mini C in Iris (local files)")
+    (version "dev")
+    (native-inputs
+     `(;; need for egrep for tests
+       ("grep" ,grep)
+       ("gawk" ,gawk)
+       ;; need diff for tests
+       ("diffutils" ,diffutils)
+       ("coq" ,coq)
+       ("coq-stdpp.git" ,coq-stdpp.git)
+       ("coq-iris.git" ,coq-iris.git)
+       ("camlp5" ,camlp5)))
+    (source (local-file coq-iris-c-monad-dev-dir
+                        #:recursive? #t
+                        #:select? (git-predicate coq-iris-c-monad-dev-dir)))))
+
+;; (define-public coq
+;;   (package
+;;     (name "coq")
+;;     (version "8.9.0")
+;;     (source
+;;      (origin
+;;        (method git-fetch)
+;;        (uri (git-reference
+;;              (url "https://github.com/coq/coq.git")
+;;              (commit (string-append "V" version))))
+;;        (file-name (git-file-name name version))
+;;        (sha256
+;;         (base32 "01ad7az6f95w16xya7979lk32agy22lf4bqgqf5qpnarpkpxhbw8"))))
+;;     (native-search-paths
+;;      (list (search-path-specification
+;;             (variable "COQPATH")
+;;             (files (list "lib/coq/user-contrib")))))
+;;     (build-system ocaml-build-system)
+;;     (inputs
+;;      `(("lablgtk" ,lablgtk)  ;; for coqide
+;;        ("python" ,python-2)
+;;        ("rsync" ,rsync) ;; for building the test log summary
+;;        ("camlp5" ,camlp5)
+;;        ("ocaml-num" ,ocaml-num)
+;;        ("ocaml-ounit" ,ocaml-ounit)))
+;;     (arguments
+;;      `(#:phases
+;;        (modify-phases %standard-phases
+;;          (add-after 'unpack 'make-git-checkout-writable
+;;            (lambda _
+;;              (for-each make-file-writable (find-files "."))
+;;              #t))
+;;          (replace 'configure
+;;            (lambda* (#:key outputs #:allow-other-keys)
+;;              (let* ((out (assoc-ref outputs "out"))
+;;                     (mandir (string-append out "/share/man"))
+;;                     (browser "icecat -remote \"OpenURL(%s,new-tab)\""))
+;;                (invoke "./configure"
+;;                        "-prefix" out
+;;                        "-mandir" mandir
+;;                        "-browser" browser
+;;                        "-coqide" "opt"))))
+;;          (replace 'build
+;;            (lambda _
+;;              (invoke "make"
+;;                      "-j" (number->string (parallel-job-count))
+;;                      "world")))
+;;          (delete 'check)
+;;          (add-after 'install 'check
+;;            (lambda _
+;;              (with-directory-excursion "test-suite"
+;;                ;; These two tests fail.
+;;                ;; This one fails because the output is not formatted as expected.
+;;                (delete-file-recursively "coq-makefile/timing")
+;;                ;; This one fails because we didn't build coqtop.byte.
+;;                (delete-file-recursively "coq-makefile/findlib-package")
+;;                (invoke "make")))))))
+;;     (home-page "https://coq.inria.fr")
+;;     (synopsis "Proof assistant for higher-order logic")
+;;     (description
+;;      "Coq is a proof assistant for higher-order logic, which allows the
+;; development of computer programs consistent with their formal specification.
+;; It is developed using Objective Caml and Camlp5.")
+;;     ;; The code is distributed under lgpl2.1.
+;;     ;; Some of the documentation is distributed under opl1.0+.
+;;     (license (list license:lgpl2.1 license:opl1.0+))))
 
 ;; Coq without the coqide
 (define-public coq-beta
